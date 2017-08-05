@@ -18,7 +18,7 @@ ALL_MAPS = [
     ('michael',         colorTuple('202020')),
     ('tbb',             colorTuple('0090b0')),
     ('cuckoo',          colorTuple('d040d0')),
-    ('grampa',          colorTuple('ff6040')),
+    ('grampa',          colorTuple('228b22')),
     ('leapfrog',        colorTuple('ff8040')),
 ]
 
@@ -97,7 +97,7 @@ class AxisAttribs:
 def makeNamedTuples(results, typeName = 'Point', labels = 'labels', points = 'points'):
     namedTupleType = collections.namedtuple(typeName, results[labels])
     numLabels = len(results[labels])
-    return [namedTupleType(*p[:numLabels]) for p in results[points]]
+    return [namedTupleType(*p[:numLabels]) for p in results[points] if p[0] == 1 or p[0] % 2 == 0]
 
 class Curve:
     def __init__(self, name, points, color):
@@ -151,7 +151,8 @@ class Graph:
                 x = math.floor(pos + 0.5)
                 with Saved(cr):
                     cr.translate(x, 9)
-                    fillAlignedText(cr, 0, 6, labelFont, label, 0.5)
+                    if int(label) == 1 or int(label) % 2 == 0:
+                        fillAlignedText(cr, 0, 6, labelFont, label, 0.5)
 
             # Vertical axis
             cr.set_source_rgb(*colorTuple('f0f0f0'))                
@@ -176,6 +177,8 @@ class Graph:
             for pos, label in yAttribs.iterLabels():    # Labels
                 if label == '0':
                     continue
+                #print pos
+                #print label
                 fillAlignedText(cr, -4, -pos + 4, labelFont, label, 1)
 
         """
@@ -247,6 +250,9 @@ class Graph:
             cr.set_source_rgba(*colorTuple('808080'))
             fillAlignedText(cr, 0, 0, axisFont2, '(Total Across All Threads)', 0.5)
         fillAlignedText(cr, xAttribs.size / 2.0, 42, axisFont, 'Threads', 0.5)
+        fillAlignedText(cr, xAttribs.size / 2.0, -450, axisFont, 'Ops/sec vs. Number of threads with ' + str(readP) + '% reads and ' + str(insertP) + '% inserts', 0.5)
+        # Draw title
+
 
         # Save PNG file
         surface.write_to_png(fileName)
@@ -265,19 +271,37 @@ def formatTime(x):
     else:
         return '%d s' % (x + 0.5)
 
-graph = Graph(AxisAttribs(250, 1, 6, 1),
-              AxisAttribs(240, 0, 150, 10, False, lambda x: '%dM' % x if x % 50 == 0 else ''))
-
-for suffix, color in ALL_MAPS:
-    resultsPath = 'build-%s/results.txt' % suffix
-    if os.path.exists(resultsPath):
-        with open(resultsPath, 'r') as f:
-            results = eval(f.read())
-            dataPoints = makeNamedTuples(results)
-            def makeGraphPoint(pt):
-                mapOpsPerSec = pt.mapOpsDone / pt.totalTime
-                return (pt.numThreads, mapOpsPerSec * pt.numThreads / 1000000)
-            graphPoints = [makeGraphPoint(pt) for pt in dataPoints]
-            graph.addCurve(Curve(results['mapType'], graphPoints, color))
-
-graph.renderTo('out.png')
+global readP
+global insertP
+rw_labels = [("0R_100W", 0), ("20R_80W", 20), ("50R_50W", 50), ("80R_20W", 80), ("100R_0W", 100)]
+ir_labels = [("50I_50R", 50), ("80I_20R", 80), ("100I_0R", 100)]
+#rw_labels = [("50R_50W", 50)]
+#rw_labels = [("90R_10W", 90)]
+for label, readPercent in rw_labels:
+      for ir_label, insertPercent in ir_labels:
+          print(ir_label)
+          if readPercent > 80:
+              y_size = 1000
+          else:
+              y_size = 250
+          graph = Graph(AxisAttribs(500, 1, 6, 1),
+                    AxisAttribs(480, 0, y_size, 10, False, lambda x: '%dM' % x if x % 50 == 0 else ''))
+          readP = readPercent
+          insertP = insertPercent
+          for suffix, color in ALL_MAPS:
+              resultsPath = 'build-%s/results' % suffix
+              resultsPath += "_" + label + "_" + ir_label + ".txt"
+              if os.path.exists(resultsPath):
+                  with open(resultsPath, 'r') as f:
+                      l = f.read()
+                      #print(l)
+                      results = eval(l)
+                      #print(results)
+                      dataPoints = makeNamedTuples(results)
+                      def makeGraphPoint(pt):
+                          mapOpsPerSec = pt.mapOpsDone / pt.totalTime
+                          return (pt.numThreads, mapOpsPerSec * pt.numThreads / 1000000)
+                      graphPoints = [makeGraphPoint(pt) for pt in dataPoints]
+                      graph.addCurve(Curve(results['mapType'], graphPoints, color))
+          outfile = "out_" + label + "_" + ir_label + ".png"
+          graph.renderTo(outfile)

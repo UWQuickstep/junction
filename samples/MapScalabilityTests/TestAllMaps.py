@@ -8,17 +8,15 @@ import sys
 CMAKE = os.getenv('CMAKE', 'cmake')
 
 ALL_MAPS = [
-    ('michael', 'junction/extra/impl/MapAdapter_CDS_Michael.h', ['-DJUNCTION_WITH_CDS=1', '-DTURF_WITH_EXCEPTIONS=1'], ['-i10000', '-c200']),
-    ('linear', 'junction/extra/impl/MapAdapter_Linear.h', [], ['-i10000', '-c200']),
     ('leapfrog', 'junction/extra/impl/MapAdapter_Leapfrog.h', [], ['-i10000', '-c200']),
     ('grampa', 'junction/extra/impl/MapAdapter_Grampa.h', [], ['-i10000', '-c200']),
-    ('stdmap', 'junction/extra/impl/MapAdapter_StdMap.h', [], ['-i10000', '-c10']),
-    ('folly', 'junction/extra/impl/MapAdapter_Folly.h', ['-DJUNCTION_WITH_FOLLY=1', '-DTURF_WITH_EXCEPTIONS=1'], ['-i2000', '-c1']),
-    ('nbds', 'junction/extra/impl/MapAdapter_NBDS.h', ['-DJUNCTION_WITH_NBDS=1'], ['-i10000', '-c200']),
-    ('tbb', 'junction/extra/impl/MapAdapter_TBB.h', ['-DJUNCTION_WITH_TBB=1'], ['-i10000', '-c200']),
-    ('tervel', 'junction/extra/impl/MapAdapter_Tervel.h', ['-DJUNCTION_WITH_TERVEL=1'], ['-i1000', '-c20']),
-    ('cuckoo', 'junction/extra/impl/MapAdapter_LibCuckoo.h', ['-DJUNCTION_WITH_LIBCUCKOO=1', '-DTURF_WITH_EXCEPTIONS=1'], ['-i5000', '-c20']),
+   ('cuckoo', 'junction/extra/impl/MapAdapter_LibCuckoo.h', ['-DJUNCTION_WITH_LIBCUCKOO=1', '-DTURF_WITH_EXCEPTIONS=1'], ['-c20', '-i5000'])
 ]
+RW_RATIOS = [(['-r0', '-w1'], "0R_100W"), (['-r1', '-w4'], "20R_80W"), (['-r1', '-w1'], "50R_50W"), (['-r4', 'w1'], "80R_20W"), (['-r1', '-w0'], "100R_0W")]
+# 0R 100W, 20R 80W, 50R 50W, 80R 20W, 100R 0W
+RW_RATIOS = [(['-r1', '-w1'], "50R_50W")]
+IR_RATIOS = [(['-n1', '-d1'], "50I_50R"), (['-n4', '-d1'], "80I_20R"), (['-n1', '-d0'], "100I_0R")]
+IR_RATIOS = [(['-n1', '-d0'], "100I_0R")]
 
 # Scan arguments for path to CMakeLists.txt and args to pass through.
 passThroughArgs = []
@@ -46,10 +44,18 @@ for suffix, include, cmakeOpts, runtimeOpts in ALL_MAPS:
     if os.sep != '/':
         userConfigCMakePath = userConfigCMakePath.replace(os.sep, '/')
     if subprocess.call([CMAKE, listFilePath, '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-DCMAKE_INSTALL_PREFIX=TestAllMapsInstallFolder',
+    #if subprocess.call([CMAKE, listFilePath, '-DCMAKE_BUILD_TYPE=Debug', '-DCMAKE_INSTALL_PREFIX=TestAllMapsInstallFolder',
                        '-DJUNCTION_USERCONFIG=%s' % userConfigCMakePath] + passThroughArgs + cmakeOpts) == 0:
         subprocess.check_call([CMAKE, '--build', '.', '--target', 'install', '--config', 'RelWithDebInfo'])
         print('Running in %s...' % subdir)
-        results = subprocess.check_output([os.path.join('TestAllMapsInstallFolder', 'bin', 'MapScalabilityTests')] + runtimeOpts)
-        with open('results.txt', 'wb') as f:
-            f.write(results)
+        # run each rw ratio
+        for ratio, rw_suffix in RW_RATIOS:
+            for ir_ratio, ir_suffix in IR_RATIOS:
+                print(rw_suffix)
+                runpath = [os.path.join('TestAllMapsInstallFolder', 'bin', 'MapScalabilityTests')] + runtimeOpts + ratio + ir_ratio
+                print(runpath)
+                results = subprocess.check_output(runpath)
+                outfile = "results_" + rw_suffix + "_" + ir_suffix + ".txt"
+                with open(outfile, 'wb') as f:
+                    f.write(results)
     os.chdir('..')
