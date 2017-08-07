@@ -14,9 +14,9 @@ ALL_MAPS = [
 ]
 RW_RATIOS = [(['-r0', '-w1'], "0R_100W"), (['-r1', '-w4'], "20R_80W"), (['-r1', '-w1'], "50R_50W"), (['-r4', 'w1'], "80R_20W"), (['-r1', '-w0'], "100R_0W")]
 # 0R 100W, 20R 80W, 50R 50W, 80R 20W, 100R 0W
-RW_RATIOS = [(['-r1', '-w1'], "50R_50W")]
+#RW_RATIOS = [(['-r1', '-w1'], "50R_50W")]
 IR_RATIOS = [(['-n1', '-d1'], "50I_50R"), (['-n4', '-d1'], "80I_20R"), (['-n1', '-d0'], "100I_0R")]
-IR_RATIOS = [(['-n1', '-d0'], "100I_0R")]
+#IR_RATIOS = [(['-n1', '-d0'], "100I_0R")]
 
 # Scan arguments for path to CMakeLists.txt and args to pass through.
 passThroughArgs = []
@@ -51,9 +51,9 @@ for suffix, include, cmakeOpts, runtimeOpts in ALL_MAPS:
         # run each rw ratio
         for ratio, rw_suffix in RW_RATIOS:
             for ir_ratio, ir_suffix in IR_RATIOS:
-                print(rw_suffix)
+                #print(rw_suffix)
                 runpath = [os.path.join('TestAllMapsInstallFolder', 'bin', 'MapScalabilityTests')] + runtimeOpts + ratio + ir_ratio
-                print(runpath)
+                #print(runpath)
                 results = subprocess.check_output(runpath)
                 outfile = "results_" + rw_suffix + "_" + ir_suffix + ".txt"
                 with open(outfile, 'wb') as f:

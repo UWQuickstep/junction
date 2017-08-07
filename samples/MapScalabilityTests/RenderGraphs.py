@@ -273,35 +273,35 @@ def formatTime(x):
 
 global readP
 global insertP
+y_size = 0
 rw_labels = [("0R_100W", 0), ("20R_80W", 20), ("50R_50W", 50), ("80R_20W", 80), ("100R_0W", 100)]
 ir_labels = [("50I_50R", 50), ("80I_20R", 80), ("100I_0R", 100)]
-#rw_labels = [("50R_50W", 50)]
-#rw_labels = [("90R_10W", 90)]
 for label, readPercent in rw_labels:
-      for ir_label, insertPercent in ir_labels:
-          print(ir_label)
-          if readPercent > 80:
-              y_size = 1000
-          else:
-              y_size = 250
-          graph = Graph(AxisAttribs(500, 1, 6, 1),
+    for ir_label, insertPercent in ir_labels:
+	path_exists = False
+        if readPercent > 80:
+            y_size = 1000
+        else:
+            y_size = 250
+        graph = Graph(AxisAttribs(500, 1, 6, 1),
                     AxisAttribs(480, 0, y_size, 10, False, lambda x: '%dM' % x if x % 50 == 0 else ''))
-          readP = readPercent
-          insertP = insertPercent
-          for suffix, color in ALL_MAPS:
-              resultsPath = 'build-%s/results' % suffix
-              resultsPath += "_" + label + "_" + ir_label + ".txt"
-              if os.path.exists(resultsPath):
-                  with open(resultsPath, 'r') as f:
-                      l = f.read()
-                      #print(l)
-                      results = eval(l)
-                      #print(results)
-                      dataPoints = makeNamedTuples(results)
-                      def makeGraphPoint(pt):
-                          mapOpsPerSec = pt.mapOpsDone / pt.totalTime
-                          return (pt.numThreads, mapOpsPerSec * pt.numThreads / 1000000)
-                      graphPoints = [makeGraphPoint(pt) for pt in dataPoints]
-                      graph.addCurve(Curve(results['mapType'], graphPoints, color))
-          outfile = "out_" + label + "_" + ir_label + ".png"
-          graph.renderTo(outfile)
+        readP = readPercent
+        insertP = insertPercent
+        for suffix, color in ALL_MAPS:
+            resultsPath = 'build-%s/results' % suffix
+            resultsPath += "_" + label + "_" + ir_label + ".txt"
+            if os.path.exists(resultsPath):
+		path_exists = True
+                with open(resultsPath, 'r') as f:
+                    l = f.read()
+                    results = eval(l)
+                    dataPoints = makeNamedTuples(results)
+                    def makeGraphPoint(pt):
+                        mapOpsPerSec = pt.mapOpsDone / pt.totalTime
+                        return (pt.numThreads, mapOpsPerSec * pt.numThreads / 1000000)
+                    graphPoints = [makeGraphPoint(pt) for pt in dataPoints]
+			
+                    graph.addCurve(Curve(results['mapType'], graphPoints, color))
+	if path_exists:
+            outfile = "out_" + label + "_" + ir_label + ".png"
+            graph.renderTo(outfile)

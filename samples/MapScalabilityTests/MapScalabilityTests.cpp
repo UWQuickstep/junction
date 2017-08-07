@@ -166,6 +166,8 @@ public:
         int numRemoves = totalWrites - numInserts;
         int extraInserts = numInserts - (m_shared->itersPerChunk * m_shared->writesPerRead);
         double extraInsertsPercent = double(extraInserts) / double(totalWrites);
+	double extraInsertsPercentBig = extraInsertsPercent * 100;
+	int extraInsertsPercentInt = int(extraInsertsPercent);
 
         turf::CPUTimer::Point start = turf::CPUTimer::get();
         u32 key;
@@ -182,6 +184,7 @@ public:
 
             //do extra inserts to keep r/w ratio constant
             if (extraInsertCounter < extraInserts) {
+            //if (counter % 100 < extraInsertsPercentInt) {
                   numInserts = m_shared->writesPerRead * 2;
                   extraInsertCounter += m_shared->writesPerRead;
             } else { 
@@ -338,7 +341,7 @@ int main(int argc, const char** argv) {
         printf("'population': %d,\n", (int) (numCores * NumKeysPerThread));
         printf("'readsPerWrite': %d,\n", (int) readsPerWrite);
         printf("'writesPerRead': %d, \n", (int) writesPerRead);
-        printf("'insertsPerRemove': %d, \n", (int) insertsPerRemove);
+        printf("'insertsPerRemove': %d,\n", (int) insertsPerRemove);
         printf("'removesPerInsert': %d, \n", (int) removesPerInsert);
         printf("'itersPerChunk': %d,\n", (int) itersPerChunk);
         printf("'chunks': %d,\n", (int) chunks);
