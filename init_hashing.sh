@@ -22,8 +22,5 @@ cmake -DCMAKE_BUILD_TYPE=Debug -DJUNCTION_WITH_LIBCUCKOO=1 ..
 make all -j
 sudo make install
 cd ../samples/MapScalabilityTests
-python TestAllMaps.py
+python TestAllMaps.py ../..
 python RenderGraphs.py
-
-#figure out how to unoptimize the code to use gdb 
-#then work on pinning threads to cpus
