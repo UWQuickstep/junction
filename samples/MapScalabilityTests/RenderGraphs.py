@@ -250,7 +250,7 @@ class Graph:
             cr.set_source_rgba(*colorTuple('808080'))
             fillAlignedText(cr, 0, 0, axisFont2, '(Total Across All Threads)', 0.5)
         fillAlignedText(cr, xAttribs.size / 2.0, 42, axisFont, 'Threads', 0.5)
-        fillAlignedText(cr, xAttribs.size / 2.0, -450, axisFont, 'Ops/sec vs. Number of threads with ' + str(readP) + '% reads and ' + str(insertP) + '% inserts', 0.5)
+        fillAlignedText(cr, xAttribs.size / 2.0, -450, axisFont, 'Ops/sec vs. Number of threads with ' + str(readP) + '% reads, ' + str(insertP) + '% inserts, ' + str(removeP) + '% removes', 0.5)
         # Draw title
 
 
@@ -273,6 +273,7 @@ def formatTime(x):
 
 global readP
 global insertP
+global removeP
 y_size = 0
 rw_labels = [("0R_100W", 0), ("20R_80W", 20), ("50R_50W", 50), ("80R_20W", 80), ("100R_0W", 100)]
 ir_labels = [("50I_50R", 50), ("80I_20R", 80), ("100I_0R", 100)]
@@ -286,7 +287,8 @@ for label, readPercent in rw_labels:
         graph = Graph(AxisAttribs(500, 1, 6, 1),
                     AxisAttribs(480, 0, y_size, 10, False, lambda x: '%dM' % x if x % 50 == 0 else ''))
         readP = readPercent
-        insertP = insertPercent
+        insertP = (100 - readPercent) * insertPercent / 100
+        removeP = 100 - readP - insertP
         for suffix, color in ALL_MAPS:
             resultsPath = 'build-%s/results' % suffix
             resultsPath += "_" + label + "_" + ir_label + ".txt"
