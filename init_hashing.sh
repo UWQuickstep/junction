@@ -18,7 +18,7 @@ git clone https://github.com/preshing/turf.git
 cd junction
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Debug -DJUNCTION_WITH_LIBCUCKOO=1 ..
+cmake -DCMAKE_BUILD_TYPE=Release -DJUNCTION_WITH_LIBCUCKOO=1 ..
 make all -j
 sudo make install
 cd ../samples/MapScalabilityTests
