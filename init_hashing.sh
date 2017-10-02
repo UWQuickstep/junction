@@ -1,3 +1,4 @@
+sudo apt-get update
 sudo apt-get install git -y
 sudo apt-get install vim -y
 sudo apt-get install feh -y
@@ -8,8 +9,7 @@ git clone https://github.com/efficient/libcuckoo.git
 cd libcuckoo
 mkdir build
 cd build
-cmake -D CMAKE_BUILD_TYPE=Release ..
-cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_EXAMPLES=1 -DBUILD_TESTS=1 ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_EXAMPLES=1 -DBUILD_TESTS=1 ..
 make all -j
 sudo make install
 make test
